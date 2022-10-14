@@ -100,12 +100,14 @@ public class Machines {
 				//and if it fails to, i.e., this machine has enough threads running on it
 				//(full of items being cooked in it), then it should wait until another thread finishes
 				//cooking their item
-				machineCanCookCapacity.acquire();
-				Simulation.logEvent(SimulationEvent.machinesCookingFood(this.machineToUse, this.foodToCook));
 				
+				machineCanCookCapacity.acquire();
+				System.out.println("|$|available permits after acquire: " + machineCanCookCapacity.availablePermits() + "|$|");
+				Simulation.logEvent(SimulationEvent.machinesCookingFood(this.machineToUse, this.foodToCook));
+				System.out.println("Cooking food: " + foodToCook + "");
 				//ccoking requires the thread to sleep a certain amount of time
 				Thread.sleep(this.foodToCook.cookTime10S);
-				
+				System.out.println("Finished cooking food: " + foodToCook + "");
 				Simulation.logEvent(SimulationEvent.machinesDoneFood(this.machineToUse, this.foodToCook));
 				//release the semaphore since finished cooking the item.
 				machineCanCookCapacity.release();

@@ -112,8 +112,12 @@ public class Simulation {
 
 		// Let cooks in
 		Thread[] cookThreads = new Thread[numCooks];
-		
-
+		for (int i = 0; i < cookThreads.length; i++) {
+			cookThreads[i] = new Thread(new Cook("Cook " + i));
+		}
+		for (int i = 0; i < cookThreads.length; i++) {
+			cookThreads[i].start();
+		}
 
 		// Build the customers.
 		Thread[] customers = new Thread[numCustomers];
@@ -170,7 +174,9 @@ public class Simulation {
 			 * Wait for customers to finish
 			 * -- you need to add some code here...
 			 */
-
+			for (int i = 0; i < customers.length; i++) {
+				customers[i].join();
+			}
 
 
 
@@ -191,10 +197,10 @@ public class Simulation {
 		}
 
 		// Shut down machines
-
-
-
-
+		logEvent(SimulationEvent.machinesEnding(fryer));
+		logEvent(SimulationEvent.machinesEnding(oven));
+		logEvent(SimulationEvent.machinesEnding(grillPress));
+		logEvent(SimulationEvent.machinesEnding(sodaMachine));
 
 		// Done with simulation
 		logEvent(SimulationEvent.endSimulation());

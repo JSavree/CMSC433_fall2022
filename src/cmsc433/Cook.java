@@ -46,7 +46,7 @@ public class Cook implements Runnable {
 				// YOUR CODE GOES HERE..
 				//use a CyclicBarrier to wait or just use latches.
 				Order customerOrder;
-				
+				System.out.println("hello?, cook " + this.name + " here");
 				//here Cook processes the order and removes it.
 				synchronized (Simulation.orderQueue) {
 					while (Simulation.orderQueue.isEmpty()) {

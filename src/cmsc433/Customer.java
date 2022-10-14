@@ -58,6 +58,7 @@ public class Customer implements Runnable {
 		    	Order thisCustomerOrder = new Order(this.name, this.orderNum, this.order, waitForOrder);
 		    	Simulation.orderQueue.push(thisCustomerOrder);
 		    	
+		    	//System.out.println("hello customer here");
 		    	//let Cook know a order has been placed.
 		    	Simulation.orderQueue.notifyAll();
 		    }
