@@ -112,7 +112,7 @@ public class Simulation {
 
 		// Let cooks in
 		Thread[] cookThreads = new Thread[numCooks];
-
+		
 
 
 		// Build the customers.
