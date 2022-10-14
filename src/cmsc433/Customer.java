@@ -41,48 +41,45 @@ public class Customer implements Runnable {
 	 */
 	public void run() {
 		// YOUR CODE GOES HERE...
-		//See if enough tables to enter Ratsie's
-		Simulation.logEvent(SimulationEvent.customerStarting(this));
 		try {
+			//See if enough tables to enter Ratsie's
+			Simulation.logEvent(SimulationEvent.customerStarting(this));
 			Simulation.numberOfTablesAvailable.acquire();
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		//Entered Ratsie's
-		Simulation.logEvent(SimulationEvent.customerEnteredRatsies(this));
-		
-		//start countdown latch
-	    CountDownLatch waitForOrder = new CountDownLatch(1);
-		
-	    synchronized (Simulation.orderQueue) {
-	    	//place order
-	    	Simulation.logEvent(SimulationEvent.customerPlacedOrder(this, this.order, this.orderNum));
-	    	Order thisCustomerOrder = new Order(this.name, this.orderNum, this.order, waitForOrder);
-	    	Simulation.orderQueue.push(thisCustomerOrder);
+
+			//Entered Ratsie's
+			Simulation.logEvent(SimulationEvent.customerEnteredRatsies(this));
+			
+			//start countdown latch
+		    CountDownLatch waitForOrder = new CountDownLatch(1);
+			
+		    synchronized (Simulation.orderQueue) {
+		    	//place order
+		    	Simulation.logEvent(SimulationEvent.customerPlacedOrder(this, this.order, this.orderNum));
+		    	Order thisCustomerOrder = new Order(this.name, this.orderNum, this.order, waitForOrder);
+		    	Simulation.orderQueue.push(thisCustomerOrder);
+		    	
+		    	//let Cook know a order has been placed.
+		    	Simulation.orderQueue.notifyAll();
+		    }
+		    
 	    	
-	    	//let Cook know a order has been placed.
-	    	Simulation.orderQueue.notifyAll();
-	    }
-	    
-    	
-    	//count down latch to wait for order to be finished by Cook
-    	try {
+	    	//count down latch to wait for order to be finished by Cook
 			waitForOrder.await();
+
+	    	
+	    	//after await release, customer should have received its order.
+	    	Simulation.logEvent(SimulationEvent.customerReceivedOrder(this, this.order, this.orderNum));
+	    	
+	    	//Cook should be the one to remove the Customer's order after finishing processing it.
+	    	//Simulation.orderQueue.remove(thisCustomerOrder);
+		    
+		    //leaving Ratsie's
+		    Simulation.logEvent(SimulationEvent.customerLeavingRatsies(this));
+		    Simulation.numberOfTablesAvailable.release();
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-    	
-    	//after await release, customer should have received its order.
-    	Simulation.logEvent(SimulationEvent.customerReceivedOrder(this, this.order, this.orderNum));
-    	
-    	//Cook should be the one to remove the Customer's order after finishing processing it.
-    	//Simulation.orderQueue.remove(thisCustomerOrder);
-	    
-	    //leaving Ratsie's
-	    Simulation.logEvent(SimulationEvent.customerLeavingRatsies(this));
-	    Simulation.numberOfTablesAvailable.release();
+		
 	}
 }

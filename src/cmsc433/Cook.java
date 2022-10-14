@@ -1,5 +1,6 @@
 package cmsc433;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 /**
@@ -53,30 +54,46 @@ public class Cook implements Runnable {
 					}
 					
 					customerOrder = Simulation.orderQueue.remove();
+					Simulation.logEvent(SimulationEvent.cookReceivedOrder(this, customerOrder.getCustomerOrder(),
+							customerOrder.getOrderNum()));
 				}
 
-				CountDownLatch doneCooking = new CountDownLatch(customerOrder.getCustomerOrder().size());
+				//tracks the items being cooked
+				ArrayList<Thread> itemsBeingCooked = new ArrayList<Thread>();
 				
-
-				
+				Machines machineUsed;
 				for (Food orderItem : customerOrder.getCustomerOrder()) {
 					//try and see if the Machine has room to cook food
 					//Simulation.machinesMap.get(orderItem).machineCanCookCapacity.acquire();
+					Simulation.logEvent(SimulationEvent.cookStartedFood(this, orderItem, customerOrder.getOrderNum()));	
 					
 					synchronized (Simulation.machinesMap) {
-						while (Simulation.machinesMap.containsKey(orderItem)) {
-							Simulation.machinesMap.wait();
-						}
+						machineUsed = Simulation.machinesMap.get(orderItem);
 					}
 					
-					//start cooking item with the machine
-					CountDownLatch startCooking = new CountDownLatch(1);
-					Simulation.machinesMap.get(orderItem).makeFood(startCooking, doneCooking);
-					startCooking.countDown();
+					if (machineUsed == null) {
+						System.err.println("machine does not exist for " + orderItem);
+					} else {
+						//start cooking item with the machine
+						Thread itemCooked = machineUsed.makeFood();
+						itemsBeingCooked.add(itemCooked);
+					}
+						
 				}
 				
-				//wait for everything in the order to be done cooking
-				doneCooking.await();
+				//wait for each item in the order to be done cooking
+				for (int i = 0; i < customerOrder.getCustomerOrder().size(); i++) {
+					itemsBeingCooked.get(i).join();
+					Simulation.logEvent(SimulationEvent.cookFinishedFood(this, customerOrder.getCustomerOrder().get(i),
+							customerOrder.getOrderNum()));
+				}
+				
+				
+				
+				//this should be last thing done in the loop.
+				//when finished cooking, inform customers, i.e., deliver their order
+				Simulation.logEvent(SimulationEvent.cookCompletedOrder(this, customerOrder.getOrderNum()));
+				customerOrder.getCustomerLatch().countDown();
 
 				//throw new InterruptedException(); // REMOVE THIS
 			}

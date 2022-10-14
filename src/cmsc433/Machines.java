@@ -39,7 +39,7 @@ public class Machines {
 
 	// YOUR CODE GOES HERE...
 	//some variable to store count
-	public Semaphore machineCanCookCapacity;
+	private Semaphore machineCanCookCapacity;
 
 	/**
 	 * The constructor takes at least the name of the machines, the Food item they
@@ -64,25 +64,31 @@ public class Machines {
 	 * parameters or return something other than Object. You will need to implement
 	 * some means to notify the calling Cook when the food item is finished.
 	 */
-	public Object makeFood(CountDownLatch startCooking, CountDownLatch doneCooking) throws InterruptedException {
+	public Thread makeFood() throws InterruptedException {
 		// YOUR CODE GOES HERE...
 		
 		//every time makeFood is called, it starts a new thread cooking some food.
-		startCooking.await();
-		//maybe make each thread try and acquire a semaphore?
-		new Thread(new CookAnItem(doneCooking, machineFoodType)).start();
 		
-		return new Object();
+		//maybe make each thread try and acquire a semaphore?
+		//start all the threads, but whether each item will be cooking will depend on if
+		//there is room in the machine to cook the desired food.
+		Thread cookItemThread = new Thread(new CookAnItem(this.machineFoodType, this));
+		
+		
+		cookItemThread.start();
+		return cookItemThread;
 	}
 
 	// THIS MIGHT BE A USEFUL METHOD TO HAVE AND USE BUT IS JUST ONE IDEA
 	private class CookAnItem implements Runnable {
-		private CountDownLatch doneCookingItem;
+		//private CountDownLatch doneCookingItem;
 		private Food foodToCook;
+		private Machines machineToUse;
 		
-		private CookAnItem(CountDownLatch doneCooking, Food foodBeingCooked) {
-			this.doneCookingItem = doneCooking;
+		private CookAnItem(Food foodBeingCooked, Machines machineBeingUsed) {
+			//this.doneCookingItem = doneCooking;
 			this.foodToCook = foodBeingCooked;
+			this.machineToUse = machineBeingUsed;
 		}
 		
 		public void run() {
@@ -95,11 +101,12 @@ public class Machines {
 				//(full of items being cooked in it), then it should wait until another thread finishes
 				//cooking their item
 				machineCanCookCapacity.acquire();
+				Simulation.logEvent(SimulationEvent.machinesCookingFood(this.machineToUse, this.foodToCook));
 				
 				//ccoking requires the thread to sleep a certain amount of time
-				Thread.sleep(foodToCook.cookTime10S);
-				//after finishing cooking decrease CountDownLatch
-				doneCookingItem.countDown();
+				Thread.sleep(this.foodToCook.cookTime10S);
+				
+				Simulation.logEvent(SimulationEvent.machinesDoneFood(this.machineToUse, this.foodToCook));
 				//release the semaphore since finished cooking the item.
 				machineCanCookCapacity.release();
 			} catch(InterruptedException e) { }

@@ -81,15 +81,31 @@ public class Simulation {
 
 
 		// Start up machines
-		Machines[] machines = new Machines[4];
-		machines[0] = new Machines(MachineType.fryers, FoodType.fries, machineCapacity);
-		machines[1] = new Machines(MachineType.ovens, FoodType.pizza, machineCapacity);
-		machines[2] = new Machines(MachineType.grillPresses, FoodType.subs, machineCapacity);
-		machines[3] = new Machines(MachineType.sodaMachines, FoodType.soda, machineCapacity);
-		//enter each machine and its corresponding food into the map
-		for (int i = 0; i < 4; i++) {
-			machinesMap.put(machines[i].machineFoodType, machines[i]);
+		//Machines[] machines = new Machines[4];
+		Machines fryer = new Machines(MachineType.fryers, FoodType.fries, machineCapacity);
+		synchronized (machinesMap) {
+			machinesMap.put(fryer.machineFoodType, fryer);
 		}
+		logEvent(SimulationEvent.machinesStarting(fryer, fryer.machineFoodType, machineCapacity));
+		
+		Machines oven = new Machines(MachineType.ovens, FoodType.pizza, machineCapacity);
+		synchronized (machinesMap) {
+			machinesMap.put(oven.machineFoodType, oven);
+		}
+		logEvent(SimulationEvent.machinesStarting(oven, oven.machineFoodType, machineCapacity));
+		
+		Machines grillPress = new Machines(MachineType.grillPresses, FoodType.subs, machineCapacity);
+		synchronized (machinesMap) {
+			machinesMap.put(grillPress.machineFoodType, grillPress);
+		}
+		logEvent(SimulationEvent.machinesStarting(grillPress, grillPress.machineFoodType, machineCapacity));
+		
+		Machines sodaMachine = new Machines(MachineType.sodaMachines, FoodType.soda, machineCapacity);
+		synchronized (machinesMap) {
+			machinesMap.put(sodaMachine.machineFoodType, sodaMachine);
+		}
+		logEvent(SimulationEvent.machinesStarting(sodaMachine, sodaMachine.machineFoodType, machineCapacity));
+
 		
 
 		//after starting up machines, add them to the machinesMap
